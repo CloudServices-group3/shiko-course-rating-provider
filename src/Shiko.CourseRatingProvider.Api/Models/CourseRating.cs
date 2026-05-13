@@ -4,7 +4,7 @@ public sealed class CourseRating
 {
     public Guid Id { get; set; }
 
-    public string CourseId { get; set; } = null!;
+    public Guid CourseId { get; set; }
 
     public string UserId { get; set; } = null!;
 
