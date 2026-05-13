@@ -2,7 +2,7 @@ namespace Shiko.CourseRatingProvider.Api.Contracts;
 
 public sealed record CourseRatingResponse(
     Guid Id,
-    string CourseId,
+    Guid CourseId,
     string UserId,
     int Value,
     DateTime CreatedAtUtc,
