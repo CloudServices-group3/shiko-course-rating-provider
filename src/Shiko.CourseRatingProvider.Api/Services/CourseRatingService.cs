@@ -11,39 +11,84 @@ public sealed class CourseRatingService(CourseRatingDbContext dbContext) : ICour
         Guid courseId,
         CancellationToken ct = default)
     {
-        var ratings = await dbContext.CourseRatings
+        var summaries = await GetSummariesAsync(
+            new[] { courseId },
+            ct);
+
+        return summaries[0];
+    }
+
+    public async Task<IReadOnlyList<CourseRatingSummaryResponse>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> courseIds,
+        CancellationToken ct = default)
+    {
+        var distinctCourseIds = new List<Guid>();
+        var seenCourseIds = new HashSet<Guid>();
+
+        foreach (var courseId in courseIds)
+        {
+            if (seenCourseIds.Add(courseId))
+            {
+                distinctCourseIds.Add(courseId);
+            }
+        }
+
+        var groupedRatings = await dbContext.CourseRatings
             .AsNoTracking()
-            .Where(rating => rating.CourseId == courseId)
-            .Select(rating => rating.Value)
+            .Where(rating => distinctCourseIds.Contains(rating.CourseId))
+            .GroupBy(rating => new
+            {
+                rating.CourseId,
+                rating.Value
+            })
+            .Select(group => new
+            {
+                group.Key.CourseId,
+                group.Key.Value,
+                Count = group.Count()
+            })
             .ToListAsync(ct);
 
-        var totalVotes = ratings.Count;
+        var counts = groupedRatings.ToDictionary(
+            item => (item.CourseId, item.Value),
+            item => item.Count);
 
-        var averageRating = totalVotes == 0
-            ? 0
-            : Math.Round(ratings.Average(), 1);
-
-        var distribution = Enumerable.Range(1, 5)
-            .Reverse()
-            .Select(stars =>
+        return distinctCourseIds
+            .Select(courseId =>
             {
-                var count = ratings.Count(value => value == stars);
+                var totalVotes = Enumerable.Range(1, 5)
+                    .Sum(stars => counts.GetValueOrDefault((courseId, stars)));
 
-                var percentage = totalVotes == 0
+                var averageRating = totalVotes == 0
                     ? 0
-                    : Math.Round((double)count / totalVotes * 100, 1);
+                    : Math.Round(
+                        Enumerable.Range(1, 5)
+                            .Sum(stars => stars * counts.GetValueOrDefault((courseId, stars))) / (double)totalVotes,
+                        1);
 
-                return new CourseRatingDistributionItemResponse(
-                    Stars: stars,
-                    Percentage: percentage);
+                var distribution = Enumerable.Range(1, 5)
+                    .Reverse()
+                    .Select(stars =>
+                    {
+                        var count = counts.GetValueOrDefault((courseId, stars));
+
+                        var percentage = totalVotes == 0
+                            ? 0
+                            : Math.Round((double)count / totalVotes * 100, 1);
+
+                        return new CourseRatingDistributionItemResponse(
+                            Stars: stars,
+                            Percentage: percentage);
+                    })
+                    .ToList();
+
+                return new CourseRatingSummaryResponse(
+                    CourseId: courseId,
+                    AverageRating: averageRating,
+                    TotalVotes: totalVotes,
+                    Distribution: distribution);
             })
             .ToList();
-
-        return new CourseRatingSummaryResponse(
-            CourseId: courseId,
-            AverageRating: averageRating,
-            TotalVotes: totalVotes,
-            Distribution: distribution);
     }
 
     public async Task<CourseRatingResponse?> GetUserRatingAsync(

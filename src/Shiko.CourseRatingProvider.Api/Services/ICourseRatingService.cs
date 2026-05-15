@@ -8,6 +8,10 @@ public interface ICourseRatingService
         Guid courseId,
         CancellationToken ct = default);
 
+    Task<IReadOnlyList<CourseRatingSummaryResponse>> GetSummariesAsync(
+        IReadOnlyCollection<Guid> courseIds,
+        CancellationToken ct = default);
+
     Task<CourseRatingResponse?> GetUserRatingAsync(
         Guid courseId,
         string userId,
