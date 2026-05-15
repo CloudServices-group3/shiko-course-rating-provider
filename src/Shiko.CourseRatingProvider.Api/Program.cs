@@ -10,7 +10,11 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<CourseRatingDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CourseRatingDatabase"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CourseRatingDatabase"),
+        sqlOptions =>
+        {
+            sqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "course_rating");
+        });
 });
 
 builder.Services.AddScoped<ICourseRatingService, CourseRatingService>();
