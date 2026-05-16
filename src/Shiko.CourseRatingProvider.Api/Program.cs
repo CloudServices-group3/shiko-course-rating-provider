@@ -72,14 +72,12 @@ builder.Services.AddScoped<ICourseRatingService, CourseRatingService>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+
+app.MapScalarApiReference(options =>
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options.WithTitle("Shiko Course Rating Provider API");
-    });
-}
+    options.WithTitle("Shiko Course Rating Provider API");
+});
 
 app.UseHttpsRedirection();
 
