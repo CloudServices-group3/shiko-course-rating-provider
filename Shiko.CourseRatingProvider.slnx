@@ -3,6 +3,7 @@
     <Project Path="src/Shiko.CourseRatingProvider.Api/Shiko.CourseRatingProvider.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Shiko.CourseRatingProvider.Api.IntegrationTests/Shiko.CourseRatingProvider.Api.IntegrationTests.csproj" />
     <Project Path="tests/Shiko.CourseRatingProvider.Api.UnitTests/Shiko.CourseRatingProvider.Api.UnitTests.csproj" />
   </Folder>
 </Solution>
