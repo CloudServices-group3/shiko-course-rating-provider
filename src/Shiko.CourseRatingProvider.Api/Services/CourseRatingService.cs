@@ -107,7 +107,7 @@ public sealed class CourseRatingService(CourseRatingDbContext dbContext) : ICour
             : MapToResponse(rating);
     }
 
-    public async Task<CourseRatingResponse> UpsertUserRatingAsync(
+    public async Task<CourseRatingResponse> UpsertUserRatingAsync(  // Upsert = Update if exists, Insert if not
         Guid courseId,
         string userId,
         int value,
